@@ -1,0 +1,23 @@
+{
+    "source_language" : "eng",
+    "target_languages" : ["ger-DE"],
+    "valid_domain" : "Python",
+    "wrong_domain" : "dsfdsfdsfew",
+    "project_template_guid" : "6ec5df0f-4dc4-4f91-b6b4-c7927cc4dfd3",
+    "creator_guid" : "00000000-0000-0000-0001-000000000001",
+    "test_file_path" : "testFiles/test.txt",
+    "valid_resource_guid" : "6ec5df0f-4dc4-4f91-b6b4-c7927cc4dfd3",
+    "valid_resource_type" : "ProjectTemplate",
+    "wrong_resource_guid" : "00000000-0000-0000-0001-000000000001",
+    "wrong_resource_type" : "dsfdsfdsfew",
+    "valid_tm_guid" : "5b83261b-333c-4994-a358-796dcc83410c",
+    "wrong_tm_guid" : "00000000-0000-0000-0001-000000000001",
+    "valid_user_name" : "Administrator",
+    "wrong_user_name" : "kjdshfhesdhfkhd",
+    "valid_user_guid" : "00000000-0000-0000-0001-000000000001",
+    "wrong_user_guid" : "6ec5df0f-4dc4-4f91-b6b4-c7927cc4dfd3",
+    "valid_group_name" : "Administrators",
+    "wrong_group_name" : "kjdshfhesdhfkhd",
+    "valid_group_guid" : "00000000-0000-0000-0000-000000000002",
+    "wrong_group_guid" : "6ec5df0f-4dc4-4f91-b6b4-c7927cc4dfd3"
+}
