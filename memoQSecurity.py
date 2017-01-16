@@ -51,10 +51,13 @@ class MemoQSecurity(object):
                 "/memoqservices/security?wsdl"
             self.client = Client(apiURL)
 
-        self.user = None
+        self.user = User()
         self.users = []
         self.groups = None
         self.subvendors = None
+
+    def __repr__(self):
+        return "{}".format(self.user)
 
     def set_active_user(self, guid):
         """Sets user of given guid as active."""

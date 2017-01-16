@@ -30,16 +30,17 @@ class MemoQTMTest(unittest.TestCase):
 
         test.set_active_tm(self.config["wrong_tm_guid"])
         self.assertEqual(
-            test.info, None, "TM Info for wrong TM guid should be none!")
+            test.tm.info, None, "TM Info for wrong TM guid should be none!")
 
         test.set_active_tm(self.config["valid_tm_guid"])
         self.assertNotEqual(
-            test.info, None, "TM Info for valid TM guid shouldn't be none!")
+            test.tm.info, None, "TM Info for valid TM guid shouldn't be none!")
 
-    def test_all_tms(self):
-        """Test for all_tms method."""
+    def test_get_all_tms(self):
+        """Test for get_all_tms method."""
         test = memoQTM.MemoQTM()
-        self.assertTrue(len(test.all_tms()), "List of TMs shouldn't be empty!")
+        self.assertTrue(len(test.get_all_tms()),
+                        "List of TMs shouldn't be empty!")
 
     def test_download_tmx(self):
         """Test for download_tmx method."""
@@ -59,7 +60,7 @@ class MemoQTMTest(unittest.TestCase):
         test = memoQTM.MemoQTM()
         test.set_active_tm(self.config["valid_tm_guid"])
         self.assertNotEqual(
-            test.info, None, "TM Info for valid TM guid shouldn't be none!")
+            test.tm.info, None, "TM Info for valid TM guid shouldn't be none!")
 
         file_path = test.download_tmx(".")
         self.assertNotEqual(file_path, None,

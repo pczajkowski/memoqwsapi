@@ -4,6 +4,25 @@ import os
 import json
 
 
+class TM(object):
+    """Wrapper for TM."""
+
+    def __init__(self, info=None):
+        self.info = info
+
+    def __repr__(self):
+        if self.info != None:
+            return "{} - {}\n{} - {}".format(
+                self.info.Name, self.info.Guid,
+                self.info.SourceLanguageCode, self.info.TargetLanguageCode)
+        else:
+            return "No TM!"
+
+    def get_guid(self):
+        """Returns guid of active TM."""
+        return self.info.Guid
+
+
 class MemoQTM(object):
     """Client for memoQ Translation memory API."""
 
@@ -15,12 +34,10 @@ class MemoQTM(object):
             apiURL = self.config["api_base_url"] + "/memoqservices/tm?wsdl"
             self.client = Client(apiURL)
 
-        self.__guid = None
-        self.info = None
+        self.tm = TM()
 
-    def get_guid(self):
-        """Returns guid of active TM."""
-        return self.__guid
+    def __repr__(self):
+        return "{}".format(self.tm)
 
     def get_tm_details(self, guid):
         """Returns TM Info for TM of given guid or none if no TM or connection problems."""
@@ -34,27 +51,29 @@ class MemoQTM(object):
         """Sets guid and info if TM exists."""
         tm_info = self.get_tm_details(guid)
         if tm_info != None:
-            self.__guid = guid
-            self.info = tm_info
+            self.tm = TM(tm_info)
 
-    def __repr__(self):
-        if self.info != None:
-            return "{} - {}\n{} - {}".format(self.info.Name, self.info.Guid, self.info.SourceLanguageCode, self.info.TargetLanguageCode)
-        else:
-            return "No TM!"
-
-    def all_tms(self):
-        return self.client.service.ListTMs()
+    def get_all_tms(self):
+        """Returns list of all TMs on server."""
+        return [TM(x) for x in self.client.service.ListTMs()[0]]
 
     def download_tmx(self, path, guid=None):
-        """Downloads TMX export of active or given TM to given path. Returns path to TMX file or none on any failure."""
+        """Downloads TMX export of active or given TM to given path.
+        Returns path to TMX file or none on any failure."""
         if guid != None:
             self.set_active_tm(guid)
-        if self.info == None:
+        if self.tm.info == None:
             return None
 
-        session_id = self.client.service.BeginChunkedTMXExport(self.get_guid())
-        output_filename = os.path.join(path, (self.info.Name + ".tmx"))
+        session_id = None
+        try:
+            session_id = self.client.service.BeginChunkedTMXExport(
+                self.tm.get_guid())
+        except Exception as e:
+            print(e)
+            return None
+
+        output_filename = os.path.join(path, (self.tm.info.Name + ".tmx"))
         output = open(output_filename, 'wb')
         while True:
             try:

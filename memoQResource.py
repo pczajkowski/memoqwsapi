@@ -21,6 +21,12 @@ class MemoQResource(object):
         self.__type = None
         self.info = None
 
+    def __repr__(self):
+        if self.info != None:
+            return "{} - {} ({})".format(self.info.Name, self.info.Guid, self.get_type())
+        else:
+            return "No resource!"
+
     def get_type(self):
         """Returns resource type."""
         return self.__type
@@ -35,12 +41,6 @@ class MemoQResource(object):
         """Sets resource type."""
         if self.valid_type(value):
             self.__type = self.types[value]
-
-    def __repr__(self):
-        if self.info != None:
-            return "{} - {} ({})".format(self.info.Name, self.info.Guid, self.get_type())
-        else:
-            return "No resource!"
 
     def set_active_resource(self, guid=None, resource_type=None):
         """Populates info basing on resource type and guid."""
