@@ -47,9 +47,9 @@ class MemoQSecurity(object):
             self.config = json.load(json_file)
 
         if self.config["api_base_url"] != "":
-            apiURL = self.config["api_base_url"] + \
+            api_url = self.config["api_base_url"] + \
                 "/memoqservices/security?wsdl"
-            self.client = Client(apiURL)
+            self.client = Client(api_url)
 
         self.user = User()
         self.users = []

@@ -38,8 +38,8 @@ class Project(object):
         if projectInfo != None:
             self.name = projectInfo['Name']
             self.domain = projectInfo['Domain']
-            self.languages.target.extend(
-                [x for x in projectInfo['TargetLanguageCodes'].string])
+            self.languages.target = [
+                x for x in projectInfo['TargetLanguageCodes'].string]
             self.languages.source = projectInfo['SourceLanguageCode']
             self.deadline = projectInfo['Deadline']
 
@@ -52,9 +52,9 @@ class MemoQProject(object):
             self.config = json.load(json_file)
 
         if self.config["api_base_url"] != "":
-            apiURL = self.config["api_base_url"] + \
+            api_url = self.config["api_base_url"] + \
                 "/memoqservices/ServerProject?wsdl"
-            self.client = Client(apiURL)
+            self.client = Client(api_url)
 
         self.project = Project()
 
@@ -87,24 +87,33 @@ class MemoQProject(object):
             self.project.set_project_guid(None)
 
     def template_project_options(self, template_guid):
-        """Needs guid of memoQ project template.
+        """Needs guid of memoQ project template. project.languages.source must be set.
         Returns options needed for creating memoQ project from template."""
         if self.project.languages.source != None:
             options = self.client.factory.create(
                 '{http://kilgray.com/memoqservices/2007}TemplateBasedProjectCreateInfo')
             options.TemplateGuid = template_guid
             options.Name = self.project.name
-            options.SourceLanguageCode = self.project.languages.source
+
+            if self.project.languages.source != "":
+                options.SourceLanguageCode = self.project.languages.source
+            else:
+                print("project.languages.source must be set!")
+                return None
+
             options.Domain = self.project.domain
             options.CreatorUser = self.config["creator_guid"]
             return options
         else:
             return None
 
-    def create_project_from_template(self, templateGuid):
-        """Creates memoQ project from given project template.
+    def create_project_from_template(self, template_guid=None, options=None):
+        """Creates memoQ project using predefined options when
+        provided with template_guid or using provided options.
         Sets new project as active project on success."""
-        options = self.template_project_options(templateGuid)
+        if template_guid != None:
+            options = self.template_project_options(template_guid)
+
         if options != None:
             result = self.client.service.CreateProjectFromTemplate(options)
             if result.ResultStatus == "Success":
@@ -113,13 +122,24 @@ class MemoQProject(object):
                 self.project.set_project_guid(None)
 
     def project_options(self):
-        """Returns options needed for creating memoQ project."""
+        """Returns options needed for creating memoQ project. project.languages.source and project.languages.target must be set."""
         if len(self.project.languages.target) and self.project.languages.source != None:
             options = self.client.factory.create(
                 '{http://kilgray.com/memoqservices/2007}ServerProjectDesktopDocsCreateInfo')
             options.Name = self.project.name
-            options.SourceLanguageCode = self.project.languages.source
-            options.TargetLanguageCodes.string = self.project.languages.target
+
+            if self.project.languages.source != "":
+                options.SourceLanguageCode = self.project.languages.source
+            else:
+                print("project.languages.source must be set!")
+                return None
+
+            if len(self.project.languages.target):
+                options.TargetLanguageCodes.string = self.project.languages.target
+            else:
+                print("project.languages.target must be set!")
+                return None
+
             options.Deadline = self.project.deadline
             options.RecordVersionHistory = True
             options.CreatorUser = self.config["creator_guid"]
@@ -131,9 +151,12 @@ class MemoQProject(object):
         else:
             return None
 
-    def create_project(self):
-        """Creates memoQ project. Sets new project as active project on success."""
-        options = self.project_options()
+    def create_project(self, options=None):
+        """Creates memoQ project using predefined or provided options.
+        Sets new project as active project on success."""
+        if options == None:
+            options = self.project_options()
+
         if options != None:
             project_guid = self.client.service.CreateProject2(options)
             if project_guid != None:
@@ -192,9 +215,6 @@ class MemoQProject(object):
         if self.project.get_project_guid() == None:
             return "No project!"
 
-        if self.project.documents == None:
-            self.get_project_documents()
-
         export_results = []
         for guid in self.document_guids():
             export_results.append(
@@ -213,9 +233,6 @@ class MemoQProject(object):
         Prints path to each file on success and returns true."""
         if self.project.get_project_guid() == None:
             return "No project!"
-
-        if self.documents == None:
-            self.get_project_documents()
 
         options = self.client.factory.create(
             '{http://kilgray.com/memoqservices/2007}DocumentExportOptions')
@@ -280,7 +297,7 @@ class MemoQProject(object):
                 with open(output_file, 'wb') as target:
                     target.write(b64decode(stat.ResultData))
                     filename = '{}_{}.csv'.format(
-                    stat.TargetLangCode, self.project.name)
+                        stat.TargetLangCode, self.project.name)
                 output_file = os.path.join(path, filename)
                 with open(output_file, 'wb') as target:
                     # Statistics are base64 and utf-16 encoded, so we need to

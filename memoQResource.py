@@ -11,9 +11,9 @@ class MemoQResource(object):
             self.config = json.load(json_file)
 
         if self.config["api_base_url"] != "":
-            apiURL = self.config["api_base_url"] + \
+            api_url = self.config["api_base_url"] + \
                 "/memoqservices/resource?wsdl"
-            self.client = Client(apiURL)
+            self.client = Client(api_url)
 
         self.types = self.client.factory.create(
             '{http://kilgray.com/memoqservices/2007}ResourceType')

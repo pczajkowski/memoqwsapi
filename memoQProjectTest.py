@@ -28,20 +28,23 @@ class MemoQProjectTest(unittest.TestCase):
         """ Test for get_project_by_guid method."""
         test = memoQProject.MemoQProject()
 
-        valid_guid = "27e14066-0b73-44fc-a5ea-a828fed42e7f"
-        wrong_guid = "00000000-0000-0000-0000-000000000001"
-
-        test.get_project_by_guid(valid_guid)
+        test.get_project_by_guid(self.config["valid_project_guid"])
         self.assertEqual(test.project.get_project_guid(),
-                         valid_guid, "Guids don't match!")
+                         self.config["valid_project_guid"], "Guids don't match!")
 
-        test.get_project_by_guid(wrong_guid)
+        test.get_project_by_guid(self.config["wrong_project_guid"])
         self.assertEqual(test.project.get_project_guid(),
                          None, "Guid should be none!")
 
     def test_template_project_options(self):
         """ Test for template_project_options method."""
         test = memoQProject.MemoQProject()
+
+        options = test.template_project_options(
+            self.config["project_template_guid"])
+        self.assertIsNone(
+            options, "Options should be None if source language not set!")
+
         test.project.languages.source = self.config["source_language"]
 
         options = test.template_project_options(
@@ -69,17 +72,41 @@ class MemoQProjectTest(unittest.TestCase):
         test = memoQProject.MemoQProject()
         test.project.languages.source = self.config["source_language"]
 
-        test.create_project_from_template(self.config["project_template_guid"])
+        test.create_project_from_template(
+            template_guid=self.config["project_template_guid"])
 
         self.assertNotEqual(test.project.get_project_guid(),
                             None, "Guid shouldn't be none!")
 
         test.delete()
 
+        # Testing override
+        options = test.template_project_options(
+            self.config["project_template_guid"])
+        options.Name += "_override"
+        options.Domain = "override"
+
+        test.create_project_from_template(options=options)
+        self.assertNotEqual(test.project.get_project_guid(),
+                            None, "Guid shouldn't be none!")
+        self.assertEqual(options.Domain, test.project.domain)
+
+        test.delete()
+
     def test_project_options(self):
         """ Test for project_options method."""
         test = memoQProject.MemoQProject()
+
+        options = test.project_options()
+        self.assertIsNone(
+            options, "Options should be None if source language not set!")
+
         test.project.languages.source = self.config["source_language"]
+
+        options = test.project_options()
+        self.assertIsNone(
+            options, "Options should be None if target languages not set!")
+
         test.project.languages.target = self.config["target_languages"]
 
         options = test.project_options()
@@ -114,6 +141,18 @@ class MemoQProjectTest(unittest.TestCase):
 
         self.assertNotEqual(test.project.get_project_guid(),
                             None, "Guid shouldn't be none!")
+
+        test.delete()
+
+        # Testing override
+        options = test.project_options()
+        options.Name += "_override"
+        options.Domain = "override"
+
+        test.create_project(options=options)
+        self.assertNotEqual(test.project.get_project_guid(),
+                            None, "Guid shouldn't be none!")
+        self.assertEqual(options.Domain, test.project.domain)
 
         test.delete()
 
@@ -171,7 +210,10 @@ class MemoQProjectTest(unittest.TestCase):
                          filename, "Name of document doesn't match test filename!")
 
         export_result = test.export_documents(".")
+        filepath = os.path.join(".", filename)
         self.assertTrue(export_result, "Export result should be true!")
+        self.assertTrue(os.path.isfile(filepath), "File should exist!")
+        os.remove(filepath)
 
         test.delete()
 
@@ -194,7 +236,10 @@ class MemoQProjectTest(unittest.TestCase):
                          filename, "Name of document doesn't match test filename!")
 
         export_result = test.export_documents2(".")
+        filepath = os.path.join(".", filename)
         self.assertTrue(export_result, "Export result should be true!")
+        self.assertTrue(os.path.isfile(filepath), "File should exist!")
+        os.remove(filepath)
 
         test.delete()
 

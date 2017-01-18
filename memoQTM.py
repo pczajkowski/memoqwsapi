@@ -31,8 +31,8 @@ class MemoQTM(object):
             self.config = json.load(json_file)
 
         if self.config["api_base_url"] != "":
-            apiURL = self.config["api_base_url"] + "/memoqservices/tm?wsdl"
-            self.client = Client(apiURL)
+            api_url = self.config["api_base_url"] + "/memoqservices/tm?wsdl"
+            self.client = Client(api_url)
 
         self.tm = TM()
 

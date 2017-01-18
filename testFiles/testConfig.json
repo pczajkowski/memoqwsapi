@@ -3,6 +3,8 @@
     "target_languages" : ["ger-DE"],
     "valid_domain" : "Python",
     "wrong_domain" : "dsfdsfdsfew",
+    "valid_project_guid" : "27e14066-0b73-44fc-a5ea-a828fed42e7f",
+    "wrong_project_guid" : "00000000-0000-0000-0000-000000000001",
     "project_template_guid" : "6ec5df0f-4dc4-4f91-b6b4-c7927cc4dfd3",
     "creator_guid" : "00000000-0000-0000-0001-000000000001",
     "test_file_path" : "testFiles/test.txt",
