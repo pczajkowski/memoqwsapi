@@ -265,10 +265,12 @@ class MemoQProject(object):
 
         return options
 
-    def run_statistics(self):
-        """Returns statistics for all documents and language combinations of active project,
-         none on failure."""
-        options = self.statistics_options()
+    def run_statistics(self, options=None):
+        """Returns statistics (memoQ CSV) for all documents and language
+        combinations of active project using predefined or provided options,
+         returns none on failure."""
+        if options == None:
+            options = self.statistics_options()
 
         statistics_format = self.client.factory.create(
             '{http://schemas.datacontract.org/2004/07/MemoQServices}StatisticsResultFormat')
@@ -286,28 +288,26 @@ class MemoQProject(object):
         except Exception as e:
             print(str(e))
 
-    def save_statistics(self, path):
-        """Saves statictis to given path (one file per language combination).
-        Returns path to statistics file(s)."""
-        statistics = self.run_statistics()
-        if statistics != None:
-            for stat in statistics.ResultsForTargetLangs.StatisticsResultForLang:
-                output_file = '{}_{}.csv'.format(
-                    stat.TargetLangCode, self.project.name)
-                with open(output_file, 'wb') as target:
-                    target.write(b64decode(stat.ResultData))
-                    filename = '{}_{}.csv'.format(
-                        stat.TargetLangCode, self.project.name)
-                output_file = os.path.join(path, filename)
-                with open(output_file, 'wb') as target:
-                    # Statistics are base64 and utf-16 encoded, so we need to
-                    # decode first
-                    stat_data = b64decode(stat.ResultData).decode("utf-16")
-                    # Changing delimiter to ,
-                    stat_data = stat_data.replace(";", ",")
-                    target.write(stat_data.encode("utf-8"))
-                return output_file
+    def save_statistics(self, path, statistics=None, options=None):
+        """Saves provided statistics (generates them using provided options
+        if none) to given path (one file per language combination).
+        Prints path to statistics file(s)."""
+        if statistics == None:
+            statistics = self.run_statistics(options=options)
+
+        for stat in statistics.ResultsForTargetLangs.StatisticsResultForLang:
+            filename = '{}_{}.csv'.format(
+                stat.TargetLangCode, self.project.name)
+            output_file = os.path.join(path, filename)
+            with open(output_file, 'wb') as target:
+                # Statistics are base64 and utf-16 encoded, so we need to
+                # decode first
+                stat_data = b64decode(stat.ResultData).decode("utf-16")
+                # Changing delimiter to ,
+                stat_data = stat_data.replace(";", ",")
+                target.write(stat_data.encode("utf-8"))
+            print(output_file)
 
     def delete(self):
-        """Deletes active project permamently. WARNING! Not possible to recover!"""
+        """Deletes active project permanently. WARNING! Not possible to recover!"""
         self.client.service.DeleteProject(self.project.get_project_guid())

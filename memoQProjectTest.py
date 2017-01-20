@@ -281,6 +281,12 @@ class MemoQProjectTest(unittest.TestCase):
         statistics = test.run_statistics()
         self.assertNotEqual(statistics, None, "Statistics shouldn't be none!")
 
+        # Testing override
+        options = test.statistics_options()
+        options.IncludeLockedRows = True
+        statistics = test.run_statistics(options=options)
+        self.assertNotEqual(statistics, None, "Statistics shouldn't be none!")
+
         test.delete()
 
     def test_save_statistics(self):
@@ -296,10 +302,25 @@ class MemoQProjectTest(unittest.TestCase):
         result = test.import_document(self.config["test_file_path"])
         self.assertTrue(result, "Result should be true!")
 
-        file_path = test.save_statistics(".")
-        self.assertTrue(os.path.isfile(file_path), "File should exist!")
+        test.save_statistics(".", statistics=test.run_statistics())
+        csv_files = [x for x in os.listdir(
+            ".") if os.path.isfile(x) and ".csv" in x]
+        self.assertTrue(len(csv_files), "File should exist!")
 
-        os.remove(file_path)
+        for csv in csv_files:
+            os.remove(csv)
+
+        # Testing override
+        options = test.statistics_options()
+        options.IncludeLockedRows = True
+        test.save_statistics(".", options=options)
+        csv_files = [x for x in os.listdir(
+            ".") if os.path.isfile(x) and ".csv" in x]
+        self.assertTrue(len(csv_files), "File should exist!")
+
+        for csv in csv_files:
+            os.remove(csv)
+
         test.delete()
 
     def test_delete(self):
