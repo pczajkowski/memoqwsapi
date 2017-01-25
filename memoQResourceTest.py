@@ -38,23 +38,23 @@ class MemoQResourceTest(unittest.TestCase):
         """ Test for get_project_by_domain method."""
         test = memoQResource.MemoQResource()
 
-        test.set_active_resource()
+        test.set_active_resource(self.config["wrong_resource_guid"],
+                                 self.config["valid_resource_type"])
         self.assertEqual(
-            test.info, None, "Setting active resource for empty object should return none!")
+            test.info, None, "Setting active resource with wrong guid \
+            and valid type should return none!")
 
-        test.guid = self.config["valid_resource_guid"]
-        test.set_type(self.config["valid_resource_type"])
-        test.set_active_resource()
-        self.assertNotEqual(
+        test.set_active_resource(self.config["valid_resource_guid"],
+                                 self.config["wrong_resource_type"])
+        self.assertEqual(
             test.info, None, "Setting active resource with valid guid \
-            and type shouldn't return none! (feilds)")
+            and wrong type should return none!")
 
-        test = memoQResource.MemoQResource()
         test.set_active_resource(self.config["valid_resource_guid"],
                                  self.config["valid_resource_type"])
         self.assertNotEqual(
             test.info, None, "Setting active resource with valid guid \
-            and type shouldn't return none! (arguments)")
+            and type shouldn't return none!")
 
     def test_get_resources_of_type(self):
         """ Test for get_resources_of_type method."""

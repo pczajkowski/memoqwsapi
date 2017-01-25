@@ -48,7 +48,7 @@ class MemoQTM(object):
             return None
 
     def set_active_tm(self, guid):
-        """Sets guid and info if TM exists."""
+        """Sets TM of given guid as active."""
         tm_info = self.get_tm_details(guid)
         if tm_info != None:
             self.tm = TM(tm_info)

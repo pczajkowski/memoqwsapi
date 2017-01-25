@@ -17,7 +17,6 @@ class MemoQResource(object):
 
         self.types = self.client.factory.create(
             '{http://kilgray.com/memoqservices/2007}ResourceType')
-        self.guid = None
         self.__type = None
         self.info = None
 
@@ -27,9 +26,19 @@ class MemoQResource(object):
         else:
             return "No resource!"
 
+    def get_guid(self):
+        """Returns resource guid."""
+        if self.info != None:
+            return self.info.Guid
+
     def get_type(self):
         """Returns resource type."""
         return self.__type
+
+    def set_type(self, value):
+        """Sets resource type."""
+        if self.valid_type(value):
+            self.__type = self.types[value]
 
     def valid_type(self, value):
         """Returns true if type is valid."""
@@ -37,20 +46,17 @@ class MemoQResource(object):
             return True
         return False
 
-    def set_type(self, value):
-        """Sets resource type."""
-        if self.valid_type(value):
-            self.__type = self.types[value]
-
-    def set_active_resource(self, guid=None, resource_type=None):
+    def set_active_resource(self, guid, resource_type):
         """Populates info basing on resource type and guid."""
-        if resource_type != None and guid != None:
-            self.set_type(resource_type)
-            self.guid = guid
-
-        if self.guid != None and self.get_type() != None:
-            self.info = self.client.service.GetResourceInfo(
-                self.get_type(), self.guid)
+        if guid != None and self.valid_type(resource_type):
+            try:
+                info = self.client.service.GetResourceInfo(
+                    self.types[resource_type], guid)
+                if info != None:
+                    self.info = info
+                    self.set_type(resource_type)
+            except Exception:
+                pass
 
     def get_resources_of_type(self, resource_type):
         """Returns all resources of given type from memoQ server."""
@@ -67,7 +73,7 @@ class MemoQResource(object):
 
     def download_resource(self, path):
         """Downloads active resource to given path. Returns path to downloaded file."""
-        if self.get_type() != None and self.guid != None:
+        if self.get_type() != None and self.get_guid() != None:
             file_client = memoQFile.MemoQFile()
             return file_client.download_file(
-                path, self.client.service.ExportResource(self.get_type(), self.guid))
+                path, self.client.service.ExportResource(self.get_type(), self.get_guid()))

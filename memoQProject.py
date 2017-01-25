@@ -101,8 +101,12 @@ class MemoQProject(object):
                 print("project.languages.source must be set!")
                 return None
 
+            if len(self.project.languages.target):
+                options.TargetLanguageCodes.string = self.project.languages.target
+
             options.Domain = self.project.domain
             options.CreatorUser = self.config["creator_guid"]
+
             return options
         else:
             return None
@@ -307,6 +311,49 @@ class MemoQProject(object):
                 stat_data = stat_data.replace(";", ",")
                 target.write(stat_data.encode("utf-8"))
             print(output_file)
+
+    def pretranslate_options(self):
+        """Returns options for pre-translation."""
+        options = self.client.factory.create(
+            '{http://kilgray.com/memoqservices/2007}PretranslateOptions')
+        lookup_behavior = self.client.factory.create(
+            '{http://schemas.datacontract.org/2004/07/MemoQServices}PretranslateLookupBehavior')
+        options.PretranslateLookupBehavior.value = lookup_behavior.GoodMatch
+        options.GoodMatchRate = 80
+
+        # Options for locking 100% matches
+        options.LockPretranslated = True
+        pretranslate_state = self.client.factory.create(
+            '{http://schemas.datacontract.org/2004/07/MemoQServices}PretranslateStateToConfirmAndLock')
+        options.ConfirmLockPretranslated.value = pretranslate_state.ExactMatch
+        final_state = self.client.factory.create(
+            '{http://schemas.datacontract.org/2004/07/MemoQServices}PretranslateExpectedFinalTranslationState')
+        options.FinalTranslationState = final_state.Confirmed
+
+        copy_source_options = self.client.factory.create(
+            '{http://kilgray.com/memoqservices/2007}PretranslateCopySourceToTargetBehavior')
+        copy_condition = self.client.factory.create(
+            '{http://schemas.datacontract.org/2004/07/MemoQServices}PretranslateCopySourceToTargetConditions')
+        copy_source_options.Condition.value = copy_condition.SegmentsWithOnlyTagsAndWhitespace
+        copy_source_options.Lock = True
+        options.CopySourceToTarget = copy_source_options
+
+        return options
+
+    def pretranslate_project(self, options=None):
+        """Pretranslate active project using predefined or provided options. Returns true on success."""
+        if options == None:
+            options = self.pretranslate_options()
+
+        languages = self.client.factory.create(
+            '{http://kilgray.com/memoqservices/2007}targetLangCodes')
+        languages.string = self.project.languages.target
+
+        result = self.client.service.PretranslateProject(
+            self.project.get_project_guid(), languages, options)
+        if result.ResultStatus == "Success":
+            return True
+        return False
 
     def delete(self):
         """Deletes active project permanently. WARNING! Not possible to recover!"""

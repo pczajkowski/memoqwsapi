@@ -81,6 +81,7 @@ class MemoQProjectTest(unittest.TestCase):
         test.delete()
 
         # Testing override
+        test.project.languages.target = self.config["target_languages"]
         options = test.template_project_options(
             self.config["project_template_guid"])
         options.Name += "_override"
@@ -90,6 +91,8 @@ class MemoQProjectTest(unittest.TestCase):
         self.assertNotEqual(test.project.get_project_guid(),
                             None, "Guid shouldn't be none!")
         self.assertEqual(options.Domain, test.project.domain)
+        self.assertEqual(
+            self.config["target_languages"], test.project.languages.target)
 
         test.delete()
 
@@ -320,6 +323,67 @@ class MemoQProjectTest(unittest.TestCase):
 
         for csv in csv_files:
             os.remove(csv)
+
+        test.delete()
+
+    def test_pretranslate_options(self):
+        """ Test for pretranslate_options method."""
+        test = memoQProject.MemoQProject()
+
+        fake_options = test.client.factory.create(
+            '{http://kilgray.com/memoqservices/2007}PretranslateOptions')
+        lookup_behavior = test.client.factory.create(
+            '{http://schemas.datacontract.org/2004/07/MemoQServices}PretranslateLookupBehavior')
+        fake_options.PretranslateLookupBehavior.value = lookup_behavior.GoodMatch
+        fake_options.GoodMatchRate = 80
+        fake_options.LockPretranslated = True
+
+        options = test.pretranslate_options()
+        self.assertEqual(
+            fake_options.PretranslateLookupBehavior.value, options.PretranslateLookupBehavior.value,
+            "Lookup behavior option shouldn't be different!")
+        self.assertEqual(fake_options.GoodMatchRate, options.GoodMatchRate,
+                         "Good Match option shouldn't be different!")
+        self.assertEqual(fake_options.LockPretranslated, options.LockPretranslated,
+                         "Lock Pretranslated options shouldn't be different!")
+
+    def test_pretranslate_project(self):
+        """ Test for pretranslate_project method."""
+        test = memoQProject.MemoQProject()
+        test.project.languages.source = self.config["source_language"]
+
+        test.create_project_from_template(
+            template_guid=self.config["project_template_guid"])
+
+        self.assertNotEqual(test.project.get_project_guid(),
+                            None, "Guid shouldn't be none!")
+
+        result = test.import_document(self.config["test_file_path"])
+        self.assertTrue(result, "Result should be true!")
+
+        self.assertTrue(test.pretranslate_project(),
+                        "Pre-translation shouldn't return false!")
+
+        test.delete()
+
+        # Testing override
+        test = memoQProject.MemoQProject()
+        test.project.languages.source = self.config["source_language"]
+
+        test.create_project_from_template(
+            template_guid=self.config["project_template_guid"])
+
+        self.assertNotEqual(test.project.get_project_guid(),
+                            None, "Guid shouldn't be none!")
+
+        result = test.import_document(self.config["test_file_path"])
+        self.assertTrue(result, "Result should be true!")
+
+        options = test.pretranslate_options()
+        options.GoodMatchRate = 90
+
+        self.assertTrue(test.pretranslate_project(options=options),
+                        "Pre-translation shouldn't return false!")
 
         test.delete()
 
